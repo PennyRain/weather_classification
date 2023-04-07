@@ -1,0 +1,90 @@
+package pennyrain.weather_class;
+
+public class KMeans {
+	private ArrayList<DataPoint> dataPoints;
+    private int k;
+
+    public KMeans(ArrayList<DataPoint> dataPoints, int k) {
+        this.dataPoints = dataPoints;
+        this.k = k;
+    }
+
+    public ArrayList<DataPoint> run() {
+        ArrayList<DataPoint> centroids = initializeCentroids();
+        ArrayList<DataPoint> oldCentroids = new ArrayList<>(k);
+
+        do {
+            // Assign data points to the nearest centroid
+            for (DataPoint dataPoint : dataPoints) {
+                dataPoint.setCluster(getNearestCentroid(dataPoint, centroids));
+            }
+
+            // Save old centroids and calculate new centroids
+            oldCentroids.clear();
+            oldCentroids.addAll(centroids);
+            centroids.clear();
+            for (int i = 0; i < k; i++) {
+                ArrayList<DataPoint> cluster = getCluster(i);
+                DataPoint centroid = calculateCentroid(cluster);
+                centroids.add(centroid);
+            }
+        } while (!centroidsEquals(oldCentroids, centroids)); // repeat until centroids converge
+
+        return centroids;
+    }
+
+    private ArrayList<DataPoint> initializeCentroids() {
+        ArrayList<DataPoint> centroids = new ArrayList<>(k);
+        Random random = new Random();
+        for (int i = 0; i < k; i++) {
+            DataPoint centroid = dataPoints.get(random.nextInt(dataPoints.size())).clone();
+            centroid.setCluster(i);
+            centroids.add(centroid);
+        }
+        return centroids;
+    }
+
+    private int getNearestCentroid(DataPoint dataPoint, ArrayList<DataPoint> centroids) {
+        int nearestCentroid = 0;
+        Double nearestDistance = Double.MAX_VALUE;
+        for (DataPoint centroid : centroids) {
+            Double distance = dataPoint.distanceTo(centroid);
+            if (distance < nearestDistance) {
+                nearestDistance = distance;
+                nearestCentroid = centroid.getCluster();
+            }
+        }
+        return nearestCentroid;
+    }
+
+    private DataPoint calculateCentroid(ArrayList<DataPoint> cluster) {
+        DataPoint centroid = new DataPoint(cluster.get(0).getValues());
+        for (int i = 1; i < cluster.size(); i++) {
+            centroid.add(cluster.get(i));
+        }
+        centroid.divide(cluster.size());
+        return centroid;
+    }
+
+    private ArrayList<DataPoint> getCluster(int clusterIndex) {
+        ArrayList<DataPoint> cluster = new ArrayList<>();
+        for (DataPoint dataPoint : dataPoints) {
+            if (dataPoint.getCluster() == clusterIndex) {
+                cluster.add(dataPoint);
+            }
+        }
+        return cluster;
+    }
+
+    private boolean centroidsEquals(ArrayList<DataPoint> a, ArrayList<DataPoint> b) {
+        if (a.size() != b.size()) {
+            return false;
+        }
+        for (int i = 0; i < a.size(); i++) {
+            if (!a.get(i).equals(b.get(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+}

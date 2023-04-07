@@ -1,0 +1,39 @@
+package pennyrain.weather_class;
+
+import java.util.ArrayList;
+
+public class Main {
+	public static void main(String[] args) {
+        // Generate random temperature values for 30 days
+        ArrayList<DataPoint> dataPoints = new ArrayList<>();
+        for (int i = 0; i < 30; i++) {
+            double temperature = Math.random() * 50 - 10;
+            dataPoints.add(new DataPoint(temperature));
+        }
+
+        // Run k-means algorithm to classify temperature values
+        int k = 3; // hot, cold, moderate
+        KMeans kMeans = new KMeans(dataPoints, k);
+        ArrayList<DataPoint> centroids = kMeans.run();
+
+        // Print centroids and classify each temperature value
+        for (int i = 0; i < k; i++) {
+            System.out.println("Centroid " + i + ": " + centroids.get(i).getValues()[0]);
+        }
+        for (DataPoint dataPoint : dataPoints) {
+            int cluster = dataPoint.getCluster();
+            System.out.println(dataPoint.getValues()[0] + " is " + getWeather(cluster));
+        }
+    }
+
+    private static String getWeather(int cluster) {
+        switch (cluster) {
+            case 0:
+                return "hot";
+            case 1:
+                return "cold";
+            default:
+                return "moderate";
+        }
+    }
+}

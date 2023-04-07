@@ -1,0 +1,60 @@
+package pennyrain.weather_class;
+
+public class DataPoint {
+	private double[] values;
+    private int cluster;
+
+    public DataPoint(double... values) {
+        this.values = values;
+        this.cluster = -1;
+    }
+
+    public double[] getValues() {
+        return values;
+    }
+
+    public int getCluster() {
+        return cluster;
+    }
+
+    public void setCluster(int cluster) {
+        this.cluster = cluster;
+    }
+
+    public DataPoint clone() {
+        return new DataPoint(values.clone());
+    }
+
+    public void add(DataPoint other) {
+        for (int i = 0; i < values.length; i++) {
+            values[i] += other.values[i];
+        }
+    }
+
+    public void divide(int n) {
+        for (int i = 0; i < values.length; i++) {
+            values[i] /= n;
+        }
+    }
+
+    public Double distanceTo(DataPoint other) {
+        double sum = 0;
+        for (int i = 0; i < values.length; i++) {
+            double diff = values[i] - other.values[i];
+            sum += diff * diff;
+        }
+        return Math.sqrt(sum);
+    }
+
+    public boolean equals(DataPoint other) {
+        if (values.length != other.values.length) {
+            return false;
+        }
+        for (int i = 0; i < values.length; i++) {
+            if (values[i] != other.values[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+}

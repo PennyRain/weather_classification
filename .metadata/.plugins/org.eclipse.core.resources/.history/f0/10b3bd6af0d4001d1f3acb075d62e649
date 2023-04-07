@@ -1,0 +1,96 @@
+package pennyrain.weather_class;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
+public class KMeans {
+	private int k;
+    private List<WeatherData> weatherDataList;
+    private List<WeatherData> centroids;
+
+    public KMeans(int k, List<WeatherData> weatherDataList) {
+        this.k = k;
+        this.weatherDataList = weatherDataList;
+        centroids = new ArrayList<WeatherData>(k);
+        initCentroids();
+    }
+
+    private void initCentroids() {
+        Random random = new Random();
+        for (int i = 0; i < k; i++) {
+            centroids.add(weatherDataList.get(random.nextInt(weatherDataList.size())));
+        }
+    }
+
+    public void cluster() {
+        List<List<WeatherData>> clusters = new ArrayList<List<WeatherData>>(k);
+        for (int i = 0; i < k; i++) {
+            clusters.add(new ArrayList<Object>());
+        }
+
+        int iterations = 100;
+        while (iterations-- > 0) {
+            for (WeatherData data : weatherDataList) {
+                int nearestCentroid = findNearestCentroid(data);
+                clusters.get(nearestCentroid).add(data);
+            }
+
+            for (int i = 0; i < k; i++) {
+                centroids.set(i, computeMean(clusters.get(i)));
+            }
+        }
+    }
+
+    private int findNearestCentroid(WeatherData data) {
+        int nearest = 0;
+        double minDistance = Double.MAX_VALUE;
+
+        for (int i = 0; i < k; i++) {
+            double distance = euclideanDistance(data, centroids.get(i));
+            if (distance < minDistance) {
+                minDistance = distance;
+                nearest = i;
+            }
+        }
+
+        return nearest;
+    }
+
+    private double euclideanDistance(WeatherData d1, WeatherData d2) {
+        double tempDiff = d1.getTemperature() - d2.getTemperature();
+        double humidityDiff = d1.getHumidity() - d2.getHumidity();
+        return Math.sqrt(tempDiff * tempDiff + humidityDiff * humidityDiff);
+    }
+
+    private WeatherData computeMean(List<WeatherData> cluster) {
+        double sumTemp = 0;
+        double sumHumidity = 0;
+
+        for (WeatherData data : cluster) {
+            sumTemp += data.getTemperature();
+            sumHumidity += data.getHumidity();
+        }
+
+        double meanTemp = sumTemp / cluster.size();
+        double meanHumidity = sumHumidity / cluster.size();
+
+        return new WeatherData(meanTemp, meanHumidity);
+    }
+
+    public void printClusters() {
+        for (int i = 0; i < k; i++) {
+            System.out.println("Cluster " + (i + 1) + ":");
+            WeatherData centroid = centroids.get(i);
+            System.out.println("Centroid: Temperature - " + centroid.getTemperature() + ", Humidity - " + centroid.getHumidity());
+            System.out.println("Weather Data:");
+            for (WeatherData data : weatherDataList) {
+                int nearestCentroid = findNearestCentroid(data);
+                if (i == nearestCentroid) {
+                    System.out.println("Temperature - " + data.getTemperature() + ", Humidity - " + data.getHumidity());
+                }
+            }
+            System.out.println();
+        }
+    }
+}
